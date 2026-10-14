@@ -1,0 +1,21 @@
+{
+    "name": "php-baremetal/ext-sys",
+    "description": "System functions: delay, uptime, restart, deep sleep and wake cause, reset reason, chip info, memory.",
+    "type": "bm-ext",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gianfrancesco Aurecchia",
+            "email": "gianfri@aurecchia.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.3",
+        "php-baremetal/sys-hal": "^1.0"
+    },
+    "extra": {
+        "baremetal": {
+            "module": "sys"
+        }
+    }
+}
