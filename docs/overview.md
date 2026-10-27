@@ -23,7 +23,7 @@ constants.
 | --- | --- |
 | `php-baremetal/sys-hal` (virtual) | The platform side. On ESP32 it is `php-baremetal/esp32-sys-hal` (platform `esp32`). |
 
-You never require the HAL yourself. Conductor reads the platform from `extra.baremetal.sdk` (`esp32@^1.0` gives
+You never require the HAL yourself. Conductor reads the platform from `extra.baremetal.sdk` (`esp32@^2.0` gives
 `esp32`) and adds `php-baremetal/esp32-sys-hal` while Composer resolves. That HAL brings
 [esp32-executor](package:php-baremetal/esp32-executor), which runs the light sleep, and links against the SDK
 host component `phpbm`, which performs the restart and the deep sleep after the program stops. The extension's
@@ -70,7 +70,7 @@ The resulting `composer.json`, for a Waveshare ESP32-S3-Zero:
   },
   "extra": {
     "baremetal": {
-      "sdk": "esp32@^1.0",
+      "sdk": "esp32@^2.0",
       "board": "waveshare-esp32-s3-zero",
       "runtime": "init-loop",
       "storage": "embedded"

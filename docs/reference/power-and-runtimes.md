@@ -40,7 +40,7 @@ crystal frequency and the default maximum, and the board sleeps by itself whenev
 <!-- @code-block language="json" label="composer.json, extra.baremetal" -->
 ```json
 {
-  "sdk": "esp32@^1.0",
+  "sdk": "esp32@^2.0",
   "board": "waveshare-esp32-s3-zero",
   "runtime": "event-driven",
   "storage": "embedded",
