@@ -111,7 +111,7 @@ function loop(int $tick): void
 | `sys_uptime_ms()`, `sys_micros()` | `int` | Time since boot in ms or µs (32-bit, wraps). |
 | `sys_restart()` | `never` | End the program like `exit()`, then restart at once. |
 | `sys_deep_sleep(int $ms, ?int $wakePin = null, bool $wakeLow = true)` | `never` | End the program, then deep sleep until the timer or the pin; waking boots again. |
-| `sys_light_sleep(int $ms, ?int $wakePin = null, bool $wakeLow = true)` | `string` | Sleep in place; returns `"timer"`, `"gpio"` or `"other"`. |
+| `sys_light_sleep(int $ms, ?int $wakePin = null, bool $wakeLow = true)` | `string` | Sleep in place; returns `"timer"`, `"gpio"` or `"other"`, or `"none"` when the chip did not sleep. |
 | `sys_wake_cause()` | `string` | `"none"`, `"timer"`, `"gpio"` or `"other"`: what ended the last deep sleep. |
 | `sys_reset_reason()` | `string` | Why the chip booted: `"poweron"`, `"software"`, `"deepsleep"`, `"panic"`, … |
 | `sys_chip_model()`, `sys_cpu_freq_mhz()`, `sys_mac()`, `sys_idf_version()` | `string`/`int` | Chip identity. |

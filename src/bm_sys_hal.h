@@ -25,7 +25,8 @@ void bm_sys_hal_restart(void);
 void bm_sys_hal_deep_sleep(int64_t ms, int pin, bool wake_low);
 /* NULL when pin can wake the chip from deep sleep, otherwise the reason. */
 const char *bm_sys_hal_wake_pin_error(int pin);
-/* Sleeps in place (ms, 0 = none; pin, -1 = none) and returns what woke it: "timer", "gpio" or "other". */
+/* Sleeps in place (ms, 0 = none; pin, -1 = none) and returns what woke it: "timer", "gpio" or "other", or
+ * "none" when the chip did not sleep. */
 const char *bm_sys_hal_light_sleep(int64_t ms, int pin, bool wake_low);
 /* NULL when pin can wake the chip from light sleep, otherwise the reason. */
 const char *bm_sys_hal_light_wake_pin_error(int pin);

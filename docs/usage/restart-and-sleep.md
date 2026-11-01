@@ -77,7 +77,9 @@ Milliseconds to sleep. 0 means no timer, and requires `$wakePin`.
 Any valid GPIO of the chip, or `null` for timer only. The wake is on the pin's level, not on an edge.
 <!-- @endparam -->
 <!-- @param name="$wakeLow" type="bool" default="true" -->
-`true` wakes while the pin is low, `false` while it is high.
+`true` wakes while the pin is low, `false` while it is high. The pin becomes an input with the opposite internal
+pull (esp32-sys-hal 1.0.2 and later; earlier versions set no pull, so a pin with nothing connected could wake the
+chip at random).
 <!-- @endparam -->
 <!-- @endparams -->
 
@@ -87,7 +89,8 @@ Puts the chip into light sleep and returns when it wakes, with what woke it:
 | --- | --- |
 | `"timer"` | `$ms` elapsed. |
 | `"gpio"` | The pin reached the wake level. Also returned at once, without sleeping, when the pin is already at that level. |
-| `"other"` | Any other wake source, or the sleep could not start. |
+| `"other"` | Any other wake source. |
+| `"none"` | The chip did not sleep: it refused to (the call returns at once), or the executor queue stayed full for 1000 ms (the call returns after them). |
 
 RAM, PSRAM, PHP state and open files survive; the script simply continues. The uptime keeps counting through the
 sleep. The sleep runs on the executor task, which is blocked until the chip wakes: see

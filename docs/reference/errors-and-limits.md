@@ -43,4 +43,4 @@ PHP prefixes each message with the function and argument, for example
 | Light sleep wake pins | any valid GPIO, level-triggered | esp32-sys-hal |
 
 If the executor queue stays full for the whole 1000 ms, or the chip refuses to sleep, `sys_light_sleep()`
-returns `"other"` without having slept.
+returns `"none"` without having slept (with esp32-sys-hal 1.0.1 and earlier it returned `"other"`, as for a real wake-up).
