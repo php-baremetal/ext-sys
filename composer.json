@@ -15,7 +15,8 @@
     },
     "extra": {
         "baremetal": {
-            "module": "sys"
+            "module": "sys",
+            "ide-stubs": ["ide/ext-sys.stub"]
         }
     }
 }

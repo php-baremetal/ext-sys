@@ -1,0 +1,234 @@
+<?php
+// php-baremetal/ext-sys 1.1.0 — IDE helper, not loaded at runtime.
+
+namespace {
+    /**
+     * Suspends the PHP task for a number of milliseconds; other tasks run meanwhile and it is never a busy-wait.
+     *
+     * The wait has 1 ms resolution. With the power-save option on, a delay is idle time in which the board can
+     * enter light sleep by itself. delay() is the same function under the Arduino-style name.
+     *
+     * @param int $ms Milliseconds to wait; negative values count as 0.
+     * @return void
+     * @throws \TypeError When $ms is not an int.
+     */
+    function sys_delay(int $ms): void {}
+
+    /**
+     * Suspends the PHP task for a number of milliseconds; the Arduino-style name of sys_delay(), not deprecated.
+     *
+     * @param int $ms Milliseconds to wait; negative values count as 0.
+     * @return void
+     * @throws \TypeError When $ms is not an int.
+     */
+    function delay(int $ms): void {}
+
+    /**
+     * Reads the milliseconds since boot.
+     *
+     * The value is truncated to a 32-bit PHP integer, so it turns negative after 2^31 ms (about 24.8 days) and keeps
+     * counting from there. It restarts from 0 after sys_restart() and after a deep sleep; a light sleep does not reset it.
+     *
+     * @return int Milliseconds since boot.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_uptime_ms(): int {}
+
+    /**
+     * Reads the microseconds since boot.
+     *
+     * It turns negative after 2^31 µs (about 35.8 minutes): use it for short intervals only, and compare differences
+     * of two readings, never the readings. It restarts from 0 after sys_restart() and after a deep sleep; a light sleep
+     * does not reset it.
+     *
+     * @return int Microseconds since boot.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_micros(): int {}
+
+    /**
+     * Ends the program like exit() and lets the firmware restart the board immediately.
+     *
+     * The rest of the script, loop() and every pending handler are skipped; shutdown functions and destructors run,
+     * finally blocks do not, and the stop cannot be caught. After the restart sys_reset_reason() is "software" and
+     * sys_wake_cause() is "none".
+     *
+     * @return never
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_restart(): never {}
+
+    /**
+     * Ends the program like exit() and lets the firmware put the chip into deep sleep about 100 ms later.
+     *
+     * Deep sleep powers down the CPUs and RAM: waking up is a full boot and the script starts from the beginning;
+     * then sys_reset_reason() is "deepsleep" and sys_wake_cause() tells which source fired. The rest of the script
+     * and every pending handler are skipped; shutdown functions and destructors run, finally blocks do not.
+     *
+     * @param int $ms Milliseconds to sleep, at most 2147483647; 0 means no timer: only the pin wakes the board, so $wakePin is then required.
+     * @param int|null $wakePin A GPIO that wakes the board, or null for timer only; it must be able to wake the chip from deep sleep (an RTC or LP GPIO).
+     * @param bool $wakeLow true wakes when the pin is low (a button to GND), false when it is high; the opposite internal pull is enabled on the pin during the sleep.
+     * @return never
+     * @throws \ValueError When $ms is negative ("must be greater than or equal to 0"); when $ms is 0 without a pin ("must be greater than 0 without a wake pin"); when $wakePin is negative or above 65535 ("must be a GPIO number"); when the chip has no such GPIO ("must be a GPIO of this chip (GPIO n does not exist)"); when the GPIO cannot wake the chip from deep sleep ("must be an RTC/LP GPIO (GPIO n cannot wake the chip from deep sleep)"); when the chip cannot wake on a pin and one is given ("must be null: this chip cannot wake from deep sleep on a pin").
+     * @throws \TypeError When an argument has the wrong type.
+     */
+    function sys_deep_sleep(int $ms, ?int $wakePin = null, bool $wakeLow = true): never {}
+
+    /**
+     * Puts the chip into light sleep and returns when it wakes; RAM, PSRAM, PHP state and open files survive and the uptime keeps counting.
+     *
+     * The sleep runs on the executor task, which is blocked until the chip wakes. The wake is on the pin's level, not
+     * on an edge.
+     *
+     * @param int $ms Milliseconds to sleep, at most 2147483647; 0 means no timer and requires $wakePin.
+     * @param int|null $wakePin Any valid GPIO of the chip, or null for timer only.
+     * @param bool $wakeLow true wakes while the pin is low, false while it is high; the pin becomes an input with the opposite internal pull.
+     * @return string What woke the chip: "timer" ($ms elapsed), "gpio" (the pin reached the wake level; also returned at once when it already is at that level), "other" (any other wake source) or "none" (the chip did not sleep: it refused to, or the executor queue stayed full for 1000 ms).
+     * @throws \ValueError When $ms is negative ("must be greater than or equal to 0"); when $ms is 0 without a pin ("must be greater than 0 without a wake pin"); when $wakePin is negative or above 65535 ("must be a GPIO number"); when the chip has no such GPIO ("must be a GPIO of this chip (GPIO n does not exist)").
+     * @throws \TypeError When an argument has the wrong type.
+     */
+    function sys_light_sleep(int $ms, ?int $wakePin = null, bool $wakeLow = true): string {}
+
+    /**
+     * Tells what ended the deep sleep this boot came from.
+     *
+     * The firmware reads it once at boot, so sys_light_sleep() does not change it.
+     *
+     * @return string "timer", "gpio" or "other"; "none" when the board did not come from deep sleep (power-on, reset button, sys_restart(), a crash).
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_wake_cause(): string {}
+
+    /**
+     * Tells why the chip last booted.
+     *
+     * @return string One of poweron (power was applied), external (the external reset pin), software (a software restart), panic (a crash), int_wdt (the interrupt watchdog), task_wdt (the task watchdog), wdt (another watchdog), deepsleep (woke from deep sleep), brownout (the supply voltage dropped too low), sdio (reset over SDIO), usb (reset by the USB peripheral, for example by the flashing tool), jtag (reset over JTAG) or unknown.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_reset_reason(): string {}
+
+    /**
+     * Reads the chip model.
+     *
+     * @return string The chip model, such as "ESP32", "ESP32-S3" or "ESP32-P4"; "unknown" for any other.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_chip_model(): string {}
+
+    /**
+     * Reads the CPU frequency the firmware is configured for; it is the configured value, not a measurement, so it does not change when the clock drops while idle.
+     *
+     * @return int The configured CPU frequency in MHz.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_cpu_freq_mhz(): int {}
+
+    /**
+     * Reads the Wi-Fi station MAC address, a usable device id: it derives from the address burned in at the factory, so it is unique per chip and stable across restarts.
+     *
+     * @return string The address as 17 lowercase characters, aa:bb:cc:dd:ee:ff.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_mac(): string {}
+
+    /**
+     * Reads the version of the SDK the firmware was built with.
+     *
+     * @return string The SDK version string.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_idf_version(): string {}
+
+    /**
+     * Reads the free internal RAM now. The figures describe the firmware's heap, not PHP's memory manager (see memory_get_usage()).
+     *
+     * @return int Bytes.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_heap_free(): int {}
+
+    /**
+     * Reads the size of the internal RAM heap, smaller than the chip's SRAM figure: static data and code in RAM are outside the heap.
+     *
+     * @return int Bytes.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_heap_size(): int {}
+
+    /**
+     * Reads the free PSRAM now.
+     *
+     * @return int Bytes; 0 on a board without PSRAM.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_psram_free(): int {}
+
+    /**
+     * Reads the size of the PSRAM heap.
+     *
+     * @return int Bytes; 0 without PSRAM.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_psram_size(): int {}
+
+    /**
+     * Reads the largest single block that can still be allocated from PSRAM; much smaller than sys_psram_free() means the pool is fragmented.
+     *
+     * @return int Bytes.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_psram_largest_free(): int {}
+
+    /**
+     * Tells that the extension is in the firmware; without ext-sys the function does not exist.
+     *
+     * @return bool Always true.
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function sys_available(): bool {}
+
+    /**
+     * Deprecated alias of sys_heap_free(): each call raises E_DEPRECATED.
+     *
+     * @deprecated Use sys_heap_free().
+     * @return int Bytes, as sys_heap_free().
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function heap_free(): int {}
+
+    /**
+     * Deprecated alias of sys_heap_size(): each call raises E_DEPRECATED.
+     *
+     * @deprecated Use sys_heap_size().
+     * @return int Bytes, as sys_heap_size().
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function heap_size(): int {}
+
+    /**
+     * Deprecated alias of sys_psram_free(): each call raises E_DEPRECATED.
+     *
+     * @deprecated Use sys_psram_free().
+     * @return int Bytes, as sys_psram_free().
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function psram_free(): int {}
+
+    /**
+     * Deprecated alias of sys_psram_size(): each call raises E_DEPRECATED.
+     *
+     * @deprecated Use sys_psram_size().
+     * @return int Bytes, as sys_psram_size().
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function psram_size(): int {}
+
+    /**
+     * Deprecated alias of sys_psram_largest_free(): each call raises E_DEPRECATED.
+     *
+     * @deprecated Use sys_psram_largest_free().
+     * @return int Bytes, as sys_psram_largest_free().
+     * @throws \ArgumentCountError When called with arguments.
+     */
+    function psram_largest_free(): int {}
+}
